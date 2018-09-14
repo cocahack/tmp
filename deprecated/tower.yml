@@ -1,0 +1,51 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+#  vars_prompt:
+#    - name: "GUID"
+#      prompt: "Enter the Tower GUID"    
+  
+  tasks:
+  - name: Add a tower-bastion host
+    add_host:
+      name: bastion.{{ TOWER_GUID }}.example.opentlc.com
+      group: bastion
+
+- hosts: bastion
+  gather_facts: false
+  remote_user: mcchae-pentalink.co.kr
+  become: true
+  become_method: sudo
+
+  vars:
+    ansible_ssh_private_key_file: "/root/.ssh/opentlc_key"
+
+  tasks:
+  - name: Download Ansible-Tower
+    get_url:
+      url: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
+      dest: /root
+
+  - name: Extract Ansible-Tower Setup files
+    unarchive:
+      src: /root/ansible-tower-setup-latest.tar.gz
+      #src: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
+      dest: /root
+      remote_src: yes
+
+  - name: Make an inventory into the setup directory
+    template:
+      src: inventory.j2
+      dest: "/root/inventory"
+      mode: 400
+
+  - name: Move an inventory
+    shell: \mv -f /root/inventory /root/ansible-tower-setup-*/
+
+#  - name: Execute a setup script
+#    command: /root/ansible-tower-setup-*/setup.sh
+
+  ### Require a backup file ###
+#  - name: Restore tower config
+#    shell: /root/ansible-tower-setup-*/setup.sh -e 'restore_backup_file=/root/tower-backups/tower-backup-latest.tar.gz' -r

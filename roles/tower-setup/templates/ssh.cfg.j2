@@ -1,0 +1,14 @@
+Host workstation-{{ OSP_GUID }}.rhpds.opentlc.com
+ IdentityFile ~/.ssh/opentlc_key
+ ForwardAgent yes
+ User mcchae-pentalink.co.kr
+ StrictHostKeyChecking no
+ PasswordAuthentication no
+
+Host ec2* *.internal
+  User ec2-user
+  IdentityFile ~/.ssh/{{ TOWER_GUID }}key.pem
+  ForwardAgent yes
+  StrictHostKeyChecking no
+  ConnectTimeout 60
+  ConnectionAttempts 10

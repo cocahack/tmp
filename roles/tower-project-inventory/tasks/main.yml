@@ -1,0 +1,50 @@
+---
+# tasks file for tower-project
+  - name: Add project
+    command: >
+      tower-cli project create -n ansible-homework --organization Default 
+      --scm-type git --scm-branch master --scm-clean no --scm-delete-on-update no 
+      --scm-update-on-launch yes --scm-url 'https://github.com/cocahack/ansible_homework.git' --insecure
+
+  - name: Add AWS 3tier inventory
+    command: |
+      tower-cli inventory create -n aws-3tier-inventory --organization Default
+
+  - name: Add an inventory source in AWS-3tier-inventory
+    command: >
+      tower-cli inventory_source create -n AWS-3tier-source -i aws-3tier-inventory 
+      --source ec2 --credential "AWS RO Credential" --update-on-launch True --overwrite True 
+      --source-regions all --instance-filters 'tag:instance_filter=*three-tier-app-mcchae@pentalink.co.kr*'
+
+  - name: Add tower inventory
+    command: |
+      tower-cli inventory create -n tower-inventory --organization Default
+
+  - name: Add an inventory source in tower-inventory
+    command: >
+      tower-cli inventory_source create -n tower-inventory-source -i tower-inventory 
+      --source ec2 --credential "AWS RO Credential" --update-on-launch True 
+      --overwrite True --source-regions all --instance-filters 'tag:Project=*{{ TOWER_GUID }}'
+
+  - name: Add Openstack inventory
+    command: |
+      tower-cli inventory create -n osp-qa-inventory --organization Default
+
+  - name: Associate OSP inventory with isolated nodes
+    command: |
+      tower-cli inventory associate_ig --inventory osp-qa-inventory --instance_group osp
+
+  - name: Add local inventory
+    command: |
+      tower-cli inventory create -n local-inventory --organization Default
+
+  - name: Add host in local inventory
+    command: |
+      tower-cli host create -n localhost -i local-inventory --variables 'ansible_connection: local' --enabled True
+
+#  - name: Add an inventory source in osp-qa-inventory
+#    command: >
+#      tower-cli inventory_source create -n osp-qa-source -i osp-qa-inventory --source scm 
+#      --source-project="ansible-homework" --update-on-launch True --overwrite True 
+#      --source-path "osp_jumpbox_inventory" --overwrite-vars True
+   

@@ -1,0 +1,61 @@
+---
+# tasks file for tower-credential
+  - name: Make a tower config file 
+    template:
+      src: tower_cli.cfg.j2
+      dest: /root/.tower_cli.cfg
+      mode: 0400
+
+  - name: Copy an private key
+    copy: 
+      src: ~/.ssh/opentlc_key
+      dest: /root/.ssh/opentlc_key
+      mode: 0400
+
+  - name: Add an opentlc credential
+    tower_credential:
+      name: "opentlc-key"
+      state: present
+      tower_config_file: "/root/.tower_cli.cfg"
+      ssh_key_data: "/root/.ssh/opentlc_key"
+      kind: ssh
+      become_method: sudo
+      become_username: root
+      organization: Default
+      username: mcchae-pentalink.co.kr
+      tower_verify_ssl: False
+
+  - name: Download openstack key
+    get_url:
+      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      dest: ~/.ssh/
+      mode: 0400
+ 
+#  - name: Copy an private key
+#    copy: 
+#      src: ~/.ssh/openstack.pem
+#      dest: /root/.ssh/openstack.pem
+#      mode: 0400 
+
+  - name: Add an openstack credential
+    tower_credential:
+      name: openstack-key
+      state: present
+      tower_config_file: "/root/.tower_cli.cfg"
+      ssh_key_data: "/root/.ssh/openstack.pem"
+      kind: ssh
+      become_method: sudo
+      become_username: root
+      organization: Default
+      username: cloud-user
+      tower_verify_ssl: False
+
+  - name: Add a vault credential
+    tower_credential:
+      name: ansible-vault-key
+      kind: vault
+      tower_verify_ssl: False
+      tower_config_file: "/root/.tower_cli.cfg"
+      state: present
+      vault_password: ansible 
+      organization: Default

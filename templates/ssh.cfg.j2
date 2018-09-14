@@ -1,0 +1,28 @@
+Host workstation-{{ OSP_GUID }}.rhpds.opentlc.com
+ Hostname workstation-{{ OSP_GUID }}.rhpds.opentlc.com
+ #IdentityFile ~/.ssh/opentlc_key
+ ForwardAgent yes
+ User cloud-user
+ StrictHostKeyChecking no
+ PasswordAuthentication no
+
+Host 10.10.10.*
+ User cloud-user
+ ProxyCommand ssh workstation-{{ OSP_GUID }}.rhpds.opentlc.com -W %h:%p
+ StrictHostKeyChecking no
+
+ Host bastion.{{ TOWER_GUID }}.example.opentlc.com
+  Hostname bastion.{{ TOWER_GUID }}.example.opentlc.com
+  #IdentityFile ~/.ssh/opentlc_key
+  ForwardAgent Yes
+  User mcchae-pentalink.co.kr
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  PubKeyAuthentication yes
+
+ Host tower*.*.internal
+  User ec2-user
+  #IdentityFile ~/.ssh/{{ TOWER_GUID }}key.pem
+  ProxyCommand ssh -F ./ssh.cfg bastion.{{ TOWER_GUID }}.example.opentlc.com -W %h:%p
+  StrictHostKeyChecking no
+  PubKeyAuthentication yes

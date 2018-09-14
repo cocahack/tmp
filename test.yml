@@ -2,14 +2,11 @@
 - hosts: localhost
   gather_facts: false
 
-#  vars_prompt:
-#    - name: "GUID"
-#      prompt: "Enter the Tower GUID"    
-  
+
   tasks:
   - name: Add a tower-bastion host
     add_host:
-      name: bastion.{{ GUID }}.example.opentlc.com
+      name: bastion.{{ TOWER_GUID }}.example.opentlc.com
       group: bastion
 
 - hosts: bastion
@@ -43,5 +40,17 @@
   - name: Move an inventory
     shell: \mv -f /root/inventory /root/ansible-tower-setup-*/
 
-  - name: Execute a setup script
-    command: /root/ansible-tower-setup-*/setup.sh
+#  - name: Execute a setup script
+#    command: /root/ansible-tower-setup-*/setup.sh
+
+  - name: Download a tower backup file
+    get_url:
+      url: https://github.com/cocahack/tower-backup/blob/master/tower-backup-2018-09-10-01:44:40.tar.gz
+      dest: /root/tower-backup-latest.tar.gz
+
+  - name: Move a backup file to setup directory
+    shell: \mv -f /root/tower-backup-latest.tar.gz /root/ansible-tower-setup-*/
+
+  - name: Restore backup file
+    shell: /root/ansible-tower-setup-*/setup.sh -r
+

@@ -1,0 +1,20 @@
+--- 
+#  - name: Add job templates
+#    command: >
+#      tower-cli job_template create -n osp-base-configure --job-type run -i 'Demo Inventory' 
+#      --project ansible-homework --playbook osp-base-configure.yml --credential opentlc-key
+#      --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
+
+  - name: Add job templates
+    command: >
+      tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }} 
+      --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }} 
+      --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
+    with_items:
+      - { name: osp-base-configure, playbook: osp-base-configure.yml, inventory: 'local-inventory', credential: 'opentlc-key'}
+      - { name: osp-configure, playbook: osp-configure.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+      - { name: osp-provision, playbook: osp-provision.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+      - { name: osp-deploy-3tier, playbook: osp-deploy-3tier.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+      - { name: osp-smoke-test, playbook: osp-smoke-test.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+      - { name: osp-cleanup-instance, playbook: osp-cleanup-instance.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+      - { name: osp-cleanup-resource, playbook: osp-cleanup-resource.yml, inventory: 'local-inventory', credential: 'openstack-key'}

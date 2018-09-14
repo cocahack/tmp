@@ -1,0 +1,54 @@
+---
+  - name: Download Ansible-Tower
+    get_url:
+      url: https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-3.2.6.tar.gz
+      dest: /root
+
+  - name: Extract Ansible-Tower Setup files
+    unarchive:
+      src: /root/ansible-tower-setup-3.2.6.tar.gz
+      dest: /root
+      remote_src: yes
+
+  - name: Make inventory into the setup directory
+    template:
+      src: inventory.j2
+      dest: "/root/ansible-tower-setup-3.2.6/inventory"
+      mode: 400
+
+  - name: Make ansible.cfg into the setup directory
+    template:
+      src: ansible.cfg.j2
+      dest: "/root/ansible-tower-setup-3.2.6/ansible.cfg"
+      mode: 400  
+  - name: Make ssh config into the setup directory
+    template:
+      src: ssh.cfg.j2
+      dest: "/root/ansible-tower-setup-3.2.6/ssh.cfg"
+      mode: 400
+
+
+#  - name: Move an inventory
+#    shell: \mv -f /root/inventory /root/ansible-tower-setup-*/
+
+  - name: Execute a setup script
+    command: /root/ansible-tower-setup-3.2.6/setup.sh
+ 
+  - name: Cloning tower-backup repo
+    git:
+      repo: 'https://github.com/cocahack/tower-backup.git'
+      dest: /root/tower-backup
+
+  ### Require a backup file ###
+  - name: Restore tower config
+    shell: /root/ansible-tower-setup-*/setup.sh -e 'restore_backup_file=/root/tower-backup/tower-backup-latest.tar.gz' -r
+
+  - name: Install pip
+    yum:
+      name: python-pip
+      state: latest
+
+  - name: Install tower-cli
+    pip:
+      name: ansible-tower-cli
+      state: latest

@@ -1,0 +1,78 @@
+---
+- hosts: localhost
+  gather_facts: false
+  
+  tasks:
+  - name: Add a tower-bastion host
+    add_host:
+      name: bastion.{{ TOWER_GUID }}.example.opentlc.com
+      group: bastion
+
+  - name: Add a osp workstation host
+    add_host:
+      name: workstation-{{ OSP_GUID }}.rhpds.opentlc.com
+      group: workstation
+
+  - name: Add a tower-internal host
+    add_host:
+      name: tower{{ item }}.{{ TOWER_GUID }}.internal
+      group: internal
+    with_items:
+      - 1
+      - 2
+      - 3
+
+- hosts: workstation
+  gather_facts: false
+  remote_user: mcchae-pentalink.co.kr
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  tasks:
+  - name: Download openstack public key
+    get_url:
+      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      dest: /root/.ssh/
+  - name: Set up remote access
+    shell: cat /root/.ssh/openstack.pub > /home/cloud-user/.ssh/authorized_keys
+#  - name: Add public key in cloud-user ssh dir
+#    copy:
+#      src: /root/.ssh/openstack.pub
+#      dest: /home/cloud-user/.ssh/
+#      remote_src: yes
+
+- hosts: bastion
+  gather_facts: false 
+  remote_user: mcchae-pentalink.co.kr
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+  roles:
+    - tower-setup
+    - tower-credential
+#    - tower-project-inventory
+#    - tower-template
+
+#- hosts: internal
+#  gather_facts: False
+#  become: True
+#  become_method: sudo
+#  tasks:
+#  - name: Inject ssh.cfg
+#    template:
+#      src: ssh.cfg.j2
+#      dest: /var/lib/awx/.ssh/config
+
+- hosts: bastion
+  remote_user: mcchae-pentalink.co.kr
+  gather_facts: false
+  become: true
+  become_method: sudo
+#  roles:
+#    - workflow-start
+

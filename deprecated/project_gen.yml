@@ -1,0 +1,85 @@
+---
+#- name: Set ssh config on tower internal nodes
+#  include: ssh_config.yml
+
+- hosts: localhost
+  gather_facts: false
+  
+  tasks:
+  - name: Add a tower-bastion host
+    add_host:
+      name: bastion.{{ TOWER_GUID }}.example.opentlc.com
+      group: bastion
+
+- hosts: bastion
+  gather_facts: false
+#  remote_user: mcchae-pentalink.co.kr
+  become: true
+  become_method: sudo
+
+#  vars:
+#    ansible_ssh_private_key_file: "~/.ssh/opentlc_key"
+
+  tasks:
+#  - name: Make a tower config file 
+#    template:
+#      src: tower_cli.cfg.j2
+#      dest: /root/.tower_cli.cfg
+#      mode: 0400
+#
+#  - name: Copy to private key
+#    copy: 
+#      src: /root/.ssh/opentlc_key
+#      dest: /root/.ssh/opentlc_key
+#      mode: 0400
+
+  - name: Add project
+    command: |
+      tower-cli project create -n project0 --organization Default --scm-type git --scm-branch master --scm-clean no --scm-delete-on-update no --scm-update-on-launch yes --scm-url 'https://github.com/cocahack/osp_provision.git' --insecure
+
+
+#  - name: Cloning osp repo
+#    git:
+#      repo: "https://github.com/cocahack/osp_provision.git"
+#      dest: "~/osp_provisions"
+
+#  - name: Create ssh.cfg file
+#    template:
+#      src: ssh.cfg.j2
+#      dest: "~/osp_provision/ssh.cfg"
+
+#  - name: Copy private key
+#    fetch:
+#      src: ~/.ssh/{{ TOWER_GUID }}key.pem
+#      dest: ~/.ssh/
+#      flat: yes
+
+#  - name: Set permission
+#    file:
+#      path: ~/.ssh/{{ TOWER_GUID }}key.pem
+#      mode: 0400
+  - name: Add  AWS 3tier inventory
+    command: |
+      tower-cli inventory create -n aws-3tier-inventory --organization Default
+
+  - name: Add an inventory source in AWS-3tier-inventory
+    command: |
+      tower-cli inventory_source create -n AWS-3tier-source -i aws-3tier-inventory --source ec2 --credential "AWS RO Credential" --update-on-launch True --overwrite True --source-regions all --instance-filters 'tag:instance_filter=*three-tier-app-mcchae@pentalink.co.kr*'
+
+  - name: Add tower inventory
+    command: |
+      tower-cli inventory create -n tower-inventory --organization Default
+
+  - name: Add an inventory source in tower-inventory
+    command: |
+      tower-cli inventory_source create -n tower-inventory-source -i tower-inventory --source ec2 --credential "AWS RO Credential" --update-on-launch True --overwrite True --source-regions all --instance-filters 'tag:Project=*{{ TOWER_GUID }}'
+
+  - name: Add Openstack inventory
+    command: |
+      tower-cli inventory create -n osp-qa-inventory --organization Default
+
+  - name: Add an inventory source in osp-qa-inventory
+    command: |
+      tower-cli inventory_source create -n osp-qa-source -i osp-qa-inventory --source scm --source-project="project0" --update-on-launch True --overwrite True --source-path "osp_jumpbox_inventory" --overwrite-vars True
+    
+
