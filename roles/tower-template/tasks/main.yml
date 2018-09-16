@@ -14,7 +14,7 @@
     with_items:
       - "{{ osp_templates }}"
 
-   - name: Add aws job templates
+  - name: Add aws job templates
      command: >
        tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }}
        --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }}
