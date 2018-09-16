@@ -22,21 +22,21 @@
       - 2
       - 3
 
-- hosts: workstation
-  gather_facts: false
-  remote_user: mcchae-pentalink.co.kr
-  become: true
-  become_method: sudo
-  vars:
-    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-  tasks:
-  - name: Download openstack public key
-    get_url:
-      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
-      dest: /root/.ssh/
-  - name: Set up remote access
-    shell: cat /root/.ssh/openstack.pub > /home/cloud-user/.ssh/authorized_keys
+#- hosts: workstation
+#  gather_facts: false
+#  remote_user: mcchae-pentalink.co.kr
+#  become: true
+#  become_method: sudo
+#  vars:
+#    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
+#    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+#  tasks:
+#  - name: Download openstack public key
+#    get_url:
+#      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+#      dest: /root/.ssh/
+#  - name: Set up remote access
+#    shell: cat /root/.ssh/openstack.pub > /home/cloud-user/.ssh/authorized_keys
 #  - name: Add public key in cloud-user ssh dir
 #    copy:
 #      src: /root/.ssh/openstack.pub
@@ -53,10 +53,10 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
   roles:
-    - tower-setup
-    - tower-credential
+#    - tower-setup
+#    - tower-credential
 #    - tower-project-inventory
-#    - tower-template
+    - tower-template
 
 #- hosts: internal
 #  gather_facts: False

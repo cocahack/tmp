@@ -10,11 +10,40 @@
       tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }} 
       --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }} 
       --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
+      -e 'OSP_GUID: {{ OSP_GUID }}'
     with_items:
-      - { name: osp-base-configure, playbook: osp-base-configure.yml, inventory: 'local-inventory', credential: 'opentlc-key'}
-      - { name: osp-configure, playbook: osp-configure.yml, inventory: 'local-inventory', credential: 'openstack-key'}
-      - { name: osp-provision, playbook: osp-provision.yml, inventory: 'local-inventory', credential: 'openstack-key'}
-      - { name: osp-deploy-3tier, playbook: osp-deploy-3tier.yml, inventory: 'local-inventory', credential: 'openstack-key'}
-      - { name: osp-smoke-test, playbook: osp-smoke-test.yml, inventory: 'local-inventory', credential: 'openstack-key'}
-      - { name: osp-cleanup-instance, playbook: osp-cleanup-instance.yml, inventory: 'local-inventory', credential: 'openstack-key'}
-      - { name: osp-cleanup-resource, playbook: osp-cleanup-resource.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+      - "{{ osp_templates }}"
+
+  - name: Create a workflow template
+    command: >
+      tower-cli workflow create -n 'osp-qa-test' --organization Default 
+      -d "Openstack QA Test: Deploy 3tier app after provisioning several VMs"
+
+  - name: Create nodes for a workflow template
+    command: >
+      tower-cli node create -W 'osp-qa-test' --job-template={{ item.name }}
+    with_items:
+      - "{{ osp_templates }}"
+
+  - name: Get IDs for node association
+    command: >
+      tower-cli job_template get -n {{ item.name }} -f id
+    register: "ids"
+    with_items:
+      - "{{ osp_templates }}"
+
+  - name: Associate osp-base-configure with osp-configure
+    command: >
+      tower-cli node associate_success_node -W osp-qa-test {{ item.stdout }} --job-template osp-configure
+    when: item.item.name == "osp-base-configure"
+    with_items: "{{ ids.results }}"
+
+#  - debug: var=ids
+#  - debug: 
+#      msg: "item.item {{ item.item }} is id {{ item.stdout }}"
+#    with_items: "{{ ids.results }}"
+#
+#  - debug: 
+#      msg: "{{ item.item }} id is {{ item.stdout }}"
+#    when: item.item == "osp-base-configure"
+#    with_items: "{{ ids.results }}"

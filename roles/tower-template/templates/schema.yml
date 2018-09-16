@@ -1,0 +1,20 @@
+---
+- job_template: osp-base-configure
+  success:
+  - job_template: osp-configure
+    failure:
+    - job_template: osp-cleanup-resource
+    success:
+    - job_template: osp-provision
+      failure:
+      - job_template: osp-cleanup-instance
+        success:
+          - job_template: osp-cleanup-resource
+      success:
+      - job_template: osp-deploy-3tier
+        failure:
+        - job_template: osp-cleanup-instance
+          success:
+          - job_template: osp-cleanup-resource
+        success:
+        - job_template: osp-smoke-test
