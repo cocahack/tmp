@@ -5,7 +5,7 @@
 #      --project ansible-homework --playbook osp-base-configure.yml --credential opentlc-key
 #      --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
 
-  - name: Add job templates
+  - name: Add osp job templates
     command: >
       tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }} 
       --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }} 
@@ -13,6 +13,22 @@
       -e 'OSP_GUID: {{ OSP_GUID }}'
     with_items:
       - "{{ osp_templates }}"
+
+   - name: Add aws job templates
+     command: >
+       tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }}
+       --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }}
+       --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
+     with_items:
+       - "{{ aws_templates}}"
+
+  - name: Associate osp-deploy-3tier with osp isolated group
+    command: >
+      tower-cli job_template associate_ig --job_template {{ item }} --instance_group osp
+    with_items:
+      - osp-deploy-3tier
+      - osp-smoke-test
+      - aws-provision
 
   - name: Create a workflow template
     command: >
@@ -25,18 +41,15 @@
     with_items:
       - "{{ osp_templates }}"
 
-  - name: Get IDs for node association
-    command: >
-      tower-cli job_template get -n {{ item.name }} -f id
-    register: "ids"
-    with_items:
-      - "{{ osp_templates }}"
+  - name: Copy a schema
+    template:
+      src: schema.yml.j2
+      dest: /root/schema.yml
 
-  - name: Associate osp-base-configure with osp-configure
+  - name: Create workflow tree nodes
     command: >
-      tower-cli node associate_success_node -W osp-qa-test {{ item.stdout }} --job-template osp-configure
-    when: item.item.name == "osp-base-configure"
-    with_items: "{{ ids.results }}"
+      tower-cli workflow schema osp-qa-test @/root/schema.yml
+
 
 #  - debug: var=ids
 #  - debug: 

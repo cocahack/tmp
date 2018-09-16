@@ -8,3 +8,5 @@ osp_templates:
   - { name: osp-smoke-test, playbook: osp-smoke-test.yml, inventory: 'local-inventory', credential: 'openstack-key'}
   - { name: osp-cleanup-instance, playbook: osp-cleanup-instance.yml, inventory: 'local-inventory', credential: 'openstack-key'}
   - { name: osp-cleanup-resource, playbook: osp-cleanup-resource.yml, inventory: 'local-inventory', credential: 'openstack-key'}
+aws_templates:
+  - { name: aws-provision, playbook: aws-provision.yml, inventory: 'local-inventory', credential: 'opentlc-key'}
