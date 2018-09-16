@@ -15,12 +15,12 @@
       - "{{ osp_templates }}"
 
   - name: Add aws job templates
-     command: >
-       tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }}
-       --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }}
-       --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
-     with_items:
-       - "{{ aws_templates}}"
+    command: >
+      tower-cli job_template create -n {{ item.name }} --job-type run -i {{ item.inventory }}
+      --project ansible-homework --playbook {{ item.playbook }} --credential {{ item.credential }}
+      --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
+    with_items:
+      - "{{ aws_templates}}"
 
   - name: Associate osp-deploy-3tier with osp isolated group
     command: >
