@@ -54,9 +54,9 @@
 
   roles:
 #    - tower-setup
-#    - tower-credential
+    - tower-credential
 #    - tower-project-inventory
-    - tower-template
+#    - tower-template
 
 #- hosts: internal
 #  gather_facts: False
