@@ -25,11 +25,11 @@
       username: mcchae-pentalink.co.kr
       tower_verify_ssl: False
 
-  - name: Download openstack key
-    get_url:
-      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
-      dest: ~/.ssh/
-      mode: 0400
+#  - name: Download openstack key
+#    get_url:
+#      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pem
+#      dest: ~/.ssh/
+#      mode: 0400
  
 #  - name: Copy an private key
 #    copy: 

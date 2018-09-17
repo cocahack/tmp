@@ -27,10 +27,6 @@
       dest: "/root/ansible-tower-setup-3.2.6/ssh.cfg"
       mode: 400
 
-
-#  - name: Move an inventory
-#    shell: \mv -f /root/inventory /root/ansible-tower-setup-*/
-
   - name: Execute a setup script
     command: /root/ansible-tower-setup-3.2.6/setup.sh
  
@@ -42,6 +38,9 @@
   ### Require a backup file ###
   - name: Restore tower config
     shell: /root/ansible-tower-setup-*/setup.sh -e 'restore_backup_file=/root/tower-backup/tower-backup-latest.tar.gz' -r
+
+  - name: Rerun a setup script
+    command: /root/ansible-tower-setup-3.2.6/setup.sh
 
   - name: Install pip
     yum:
