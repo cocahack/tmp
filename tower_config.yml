@@ -22,26 +22,27 @@
       - 2
       - 3
 
-#- hosts: workstation
-#  gather_facts: false
-#  remote_user: mcchae-pentalink.co.kr
-#  become: true
-#  become_method: sudo
-#  vars:
-#    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
-#    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
-#  tasks:
-#  - name: Download openstack public key
-#    get_url:
-#      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
-#      dest: /root/.ssh/
-#  - name: Set up remote access
-#    shell: cat /root/.ssh/openstack.pub > /home/cloud-user/.ssh/authorized_keys
-#  - name: Add public key in cloud-user ssh dir
-#    copy:
-#      src: /root/.ssh/openstack.pub
-#      dest: /home/cloud-user/.ssh/
-#      remote_src: yes
+- hosts: workstation
+  gather_facts: false
+  remote_user: mcchae-pentalink.co.kr
+  become: true
+  become_method: sudo
+  vars:
+    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  tasks:
+  - name: Download openstack public key
+    get_url:
+      url: http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      dest: /root/.ssh/
+  - name: Set up remote access
+    shell: cat /root/.ssh/openstack.pub > /home/cloud-user/.ssh/authorized_keys
+
+  - name: Add public key in cloud-user ssh dir
+    copy:
+      src: /root/.ssh/openstack.pub
+      dest: /home/cloud-user/.ssh/
+      remote_src: yes
 
 - hosts: bastion
   gather_facts: false 
@@ -57,22 +58,7 @@
     - tower-credential
 #    - tower-project-inventory
 #    - tower-template
-
-#- hosts: internal
-#  gather_facts: False
-#  become: True
-#  become_method: sudo
-#  tasks:
-#  - name: Inject ssh.cfg
-#    template:
-#      src: ssh.cfg.j2
-#      dest: /var/lib/awx/.ssh/config
-
-- hosts: bastion
-  remote_user: mcchae-pentalink.co.kr
-  gather_facts: false
-  become: true
-  become_method: sudo
-#  roles:
-#    - workflow-start
-
+  tasks:
+  - name: launch the osp workflow
+    command: >
+      tower-cli workflow_job launch -W osp-qa-test

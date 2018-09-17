@@ -1,0 +1,44 @@
+---
+- hosts: localhost
+  gather_facts: False
+  tasks:
+  - name: Add an aws bastion host
+    add_host:
+      name: bastion.{{ AWS_GUID }}.example.opentlc.com
+      group: aws_bastion
+
+  - name: Add a tower bastion host
+    add_host:
+      name: bastion.{{ TOWER_GUID }}.example.opentlc.com
+      group: tower_bastion
+
+- hosts: aws_bastion
+  gather_facts: False
+  become: True
+  become_method: sudo
+  remote_user: mcchae-pentalink.co.kr
+  vars:
+    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  tasks:
+  - name: Copy a private key
+    fetch:
+      src: /root/.ssh/{{ AWS_GUID }}key.pem
+      dest: ~/.ssh/
+      flat: yes
+
+- hosts: tower_bastion
+  gather_facts: False
+  become: True
+  become_method: sudo
+  remote_user: mcchae-pentalink.co.kr
+  vars:
+    ansible_ssh_private_key_file: ~/.ssh/opentlc_key
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+  roles:
+    - tower-aws-setup
+  
+  tasks:
+  - name: Launch the aws workflow
+    command: >
+      tower-cli workflow_job launch -W aws-workflow

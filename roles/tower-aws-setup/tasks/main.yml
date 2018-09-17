@@ -1,0 +1,59 @@
+---
+# tasks file for tower-aws-setup
+  - name: Copy a private key
+    copy:
+      src: ~/.ssh/{{ AWS_GUID }}key.pem
+      dest: /root/.ssh/{{ AWS_GUID }}key.pem
+      mode: 0400
+
+  - name: Add an aws credential
+    tower_credential:
+      name: "aws-key"
+      state: present
+      tower_config_file: "/root/.tower_cli.cfg"
+      ssh_key_data: "/root/.ssh/{{ AWS_GUID }}key.pem"
+      kind: ssh
+      become_method: sudo
+      become_username: root
+      organization: Default
+      username: ec2-user
+      tower_verify_ssl: False
+
+  - name: Create parent groups
+    command: >
+      tower-cli group create -n {{ item }} -i aws-3tier-inventory
+    with_items:
+      - frontends
+      - apps
+      - appdbs
+
+  - name: Associate parent groups with child groups
+    command: >
+      tower-cli group associate --group {{ item.group }} --parent {{ item.parent }}
+    with_items:
+      - { group: tag_AnsibleGroup_frontends, parent: frontends }
+      - { group: tag_AnsibleGroup_apps, parent: apps }
+      - { group: tag_AnsibleGroup_appdbs, parent: appdbs }
+
+  - name: Add aws templates
+    command: >
+      tower-cli job_template create -n {{ item }} --job-type run -i aws-3tier-inventory
+      --project ansible-homework --playbook {{ item }}.yml --credential aws-key
+      --vault-credential 'ansible-vault-key' --use-fact-cache True --verbosity verbose --become-enabled True
+    with_items:
+      - aws-deploy-3tier
+      - aws-smoke-test
+
+  - name: Add an aws deploy workflow
+    command: >
+      tower-cli workflow create -n 'aws-workflow' --organization Default
+      -d "AWS 3tier Deploy"
+
+  - name: Copy a schema
+    template:
+      src: schema.yml.j2
+      dest: /root/aws_schema.yml
+
+  - name: Edit a workflow from schema
+    command: >
+      tower-cli workflow schema aws-workflow @/root/aws_schema.yml
