@@ -19,6 +19,10 @@
       username: ec2-user
       tower_verify_ssl: False
 
+  - name: Run an AWS inventory source
+    command: >
+      tower-cli inventory_source update "AWS-3tier-source" --monitor
+
   - name: Create parent groups
     command: >
       tower-cli group create -n {{ item }} -i aws-3tier-inventory
